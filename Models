@@ -1,1 +1,0 @@
-1. Preprocess, merge all sentences in one, embed sequence, embed possible answers, compute matching score as mean of dots with each word. Then apply softmax on top.s
