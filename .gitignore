@@ -2,3 +2,5 @@
 *.csv
 .ipynb_checkpoints
 *.pdf
+logs/
+
