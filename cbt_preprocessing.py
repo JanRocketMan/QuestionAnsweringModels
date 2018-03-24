@@ -6,17 +6,21 @@ def highlight(word):
     return '\x1b[31m' + word + '\x1b[0m'
 
 class CBTProcessor:
-    def __init__(self, filename, word2vecfile):
+    def __init__(self, filename, word2vecfile, embed_dim):
+        # filename - path to train corpus, word2vecfile - path to word2vec txt file,
+        # embed_dim - dimension of the embeddings stored in word2vecfile
+
         self.words = set()
         self.word_to_id, self.id_to_word = {}, {}
-        self.pre_trained_word2vec = {}
         self.max_doc_len, self.max_query_len = 0, 0
         self.__train_data, self.val_data, self.__test_data = {}, {}, {}
         self.train_data_len, self.val_data_len, self.test_data_len = 0, 0, 0
+        self.embed_dim = embed_dim
         self.__pre_trained, self.__new_words = set(), set()
         
         word2vec_set = self.__get_word2vec_set(word2vecfile)
         self.__retrieve_dictionary(filename, word2vec_set)
+        self.embeddings = zeros((len(self.words), self.embed_dim))
         self.__get_word2vec_embeddings(word2vecfile)
 
     def __get_word2vec_set(self, word2vecfile):
@@ -79,21 +83,18 @@ class CBTProcessor:
         assert len(self.word_to_id) == len(self.id_to_word) == len(self.words)
         # show statistics
         print('Words extracted. Total number:', len(self.words))
-        #print(max({self.word_to_id[tok] for tok in self.pre_trained}))
         print('Number of pre-trained:', len(self.__pre_trained))
-        #print(min({self.word_to_id[tok] for tok in self.new_words}))
 
     def __get_word2vec_embeddings(self, word2vecfile):
         # retrive relevant embeddings
-        self.pre_trained_word2vec = {}
         with open(word2vecfile, 'r') as fin:
             for line in fin:
                 line_split = line.strip().split(' ')
                 word = line_split[0]
                 if word in self.__pre_trained:
                     vec = array(line_split[1:], dtype=float)
-                    self.pre_trained_word2vec[self.word_to_id[word]] = vec
-        assert len(self.pre_trained_word2vec) == len(self.__pre_trained)
+                    self.embeddings[self.word_to_id[word]] = vec
+        assert len(self.embeddings) == len(self.words)
 
     def fit_on_texts(self, filename, filetype, max_doc_len=1000, max_query_len=150, query_tok='21'):
         # process txt to make (D, Q, A) triplets
