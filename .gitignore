@@ -1,6 +1,8 @@
 *.txt
 *.csv
 .ipynb_checkpoints
+data/
 *.pdf
 logs/
+.ipynb_checkpoints/
 
