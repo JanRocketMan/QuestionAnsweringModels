@@ -5,15 +5,17 @@ which are evaluated on Facebook Children's Book Test.
 
 ### Prerequisites
 
-The Children’s Book Test (https://research.fb.com/downloads/babi/)
-Tensorflow 1.5.0
-Glove Word2Vec Embeddings (Twitter, 50d, https://nlp.stanford.edu/projects/glove/)
+The Children’s Book Test (https://research.fb.com/downloads/babi/)<br/>
+Tensorflow 1.5.0<br/>
+Glove Word2Vec Embeddings (Twitter, 50d, https://nlp.stanford.edu/projects/glove/)<br/>
 
 ## Models & Results
 
 MemN2N - End-To-End Memory Network (https://arxiv.org/abs/1503.08895) - WIP
 
+
 AS Reader - Attention Sum Reader Network (https://arxiv.org/abs/1603.01547) - WIP
+
 
 AttOvAtt Reader - Attention-Over-Attention Reader (https://arxiv.org/abs/1607.04423) - WIP
 
