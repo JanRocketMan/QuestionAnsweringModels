@@ -6,7 +6,7 @@ def highlight(word):
     return '\x1b[31m' + word + '\x1b[0m'
 
 class CBTProcessor:
-    def __init__(self, filename, word2vecfile, embed_dim):
+    def __init__(self, filename, word2vecfile, embed_dim, term_lower_bound=10):
         # filename - path to train corpus, word2vecfile - path to word2vec txt file,
         # embed_dim - dimension of the embeddings stored in word2vecfile
 
@@ -19,7 +19,7 @@ class CBTProcessor:
         self.__pre_trained, self.__new_words = set(), set()
         
         word2vec_set = self.__get_word2vec_set(word2vecfile)
-        self.__retrieve_dictionary(filename, word2vec_set)
+        self.__retrieve_dictionary(filename, word2vec_set, term_lower_bound)
         self.embeddings = zeros((len(self.words), self.embed_dim))
         self.__get_word2vec_embeddings(word2vecfile)
 
@@ -31,7 +31,7 @@ class CBTProcessor:
                 word2vec_set.add(line.split(None, 1)[0])
         return word2vec_set
 
-    def __retrieve_dictionary(self, filename, word2vec_set):
+    def __retrieve_dictionary(self, filename, word2vec_set, term_lower_bound):
         # parse txt file, count word frequences
         tokens_freq = {}
         with open(filename, 'r') as fin:
@@ -50,7 +50,7 @@ class CBTProcessor:
         
         # drop all rare words from the dictionary
         rare_words = set([tok for tok in self.words if 
-                               tokens_freq[tok] < 50 and 
+                               tokens_freq[tok] < term_lower_bound and 
                                not tok in word2vec_set])
         self.words -= rare_words
         # delete all copies
@@ -110,7 +110,7 @@ class CBTProcessor:
                     temp.remove('')
                     cands = temp[-1].split('|')
                     
-                    cQuery = [self.__process_token(tok) for tok in tokens[:-1]+[temp[0]]]
+                    cQuery = [self.__process_token(tok) for tok in tokens[1:-1]+[temp[0]]]
                     cCands = [self.__process_token(tok) for tok in cands]
                     cAns = self.__process_token(temp[1])
                     if filetype == 'train':
@@ -189,7 +189,7 @@ class CBTProcessor:
 
     def show_example(self, sample):
         # print one example from sample
-        rand_ind = randint(0, len(sample[0]))
+        rand_ind = randint(0, len(sample[0])-1)
         rand_doc = [self.id_to_word[tok] for tok in sample[0][rand_ind] if tok != self.word_to_id['<NA>']]
         rand_query = [self.id_to_word[tok] for tok in sample[1][rand_ind] if tok != self.word_to_id['<NA>']]
         rand_ans = self.id_to_word[sample[-2][rand_ind]]
