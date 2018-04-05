@@ -1,4 +1,4 @@
-from numpy import array, empty, zeros
+from numpy import array, empty, zeros, where
 from random import sample, randint
 from itertools import islice
 
@@ -96,15 +96,17 @@ class CBTProcessor:
                     self.embeddings[self.word_to_id[word]] = vec
         assert len(self.embeddings) == len(self.words)
 
-    def fit_on_texts(self, filename, filetype, max_doc_len=1000, max_query_len=150, query_tok='21'):
+    def fit_on_texts(self, filename, filetype, max_doc_len=1000, max_query_len=150, n_lines=5, end_tok='21'):
         # process txt to make (D, Q, A) triplets
         self.max_doc_len, self.max_query_len = max_doc_len, max_query_len
+        selected_lines = [str(k) for k in range(22-n_lines, 21)]
+
         with open(filename, 'r') as fin:
             cDoc = list()
             ind = 0
             for line in fin:
                 tokens = line.replace('\n', '').split(' ')
-                if tokens and tokens[0] == query_tok:
+                if tokens and tokens[0] == end_tok:
                     # make a query from 21-st sentence
                     temp = tokens[-1].split('\t')
                     temp.remove('')
@@ -123,7 +125,7 @@ class CBTProcessor:
                         raise TypeError('\'filetype\' should be \'train\', \'val\' or \'test\'')
                     ind += 1
                     cDoc = list()
-                else:
+                elif tokens and tokens[0] in selected_lines:
                     cDoc += [self.__process_token(tok) for tok in tokens[1:]]
         if filetype == 'train':
         	self.train_data_len = ind
@@ -144,14 +146,15 @@ class CBTProcessor:
         return res
 
     def __process_lists(self, cDoc, cQuery, cCands, cAns):
+
         # convert lists to triplets
         nDoc = empty(self.max_doc_len)
         if len(cDoc) > self.max_doc_len:
             # crop too long
-            nDoc = array(cDoc[:self.max_doc_len])
+            nDoc = array(cDoc[-self.max_doc_len:])
         else:
             # pad too short
-            nDoc = array(cDoc + [self.word_to_id['<NA>']] * (self.max_doc_len - len(cDoc)))
+            nDoc = array([self.word_to_id['<NA>']] * (self.max_doc_len - len(cDoc)) + cDoc)
         # same for query text
         nQuery = empty(self.max_query_len)
         if len(cQuery) > self.max_query_len:
@@ -173,26 +176,28 @@ class CBTProcessor:
         if offset is None:
             inds = sample(range(len(data)), batch_size)
         else:
-            inds = range(offset, offset + batch_size)
-        sample_D, sample_Q, sample_C, sample_A, sample_mask = [],[],[],[],[]
+            inds = range(offset, min(offset + batch_size, len(data)))
+        sample_D, sample_Q, sample_C, sample_A, sample_D_len, sample_Q_len = [],[],[],[],[],[]
         for ind in inds:
             newsample = data[ind]
             sample_D += [newsample[0]]
             sample_Q += [newsample[1]]
             sample_C += [newsample[2]]
             sample_A += [newsample[3]]
-            temp_list = zeros((len(newsample[0]),len(newsample[1])))
-            temp_list[0:newsample[-2],0:newsample[-1]] = 1
-            sample_mask += [temp_list]
+            sample_D_len += [newsample[-2]]
+            sample_Q_len += [newsample[-1]]
+            #temp_list = zeros((len(newsample[0]),len(newsample[1])))
+            #temp_list[0:newsample[-2],0:newsample[-1]] = 1
+            #sample_mask += [temp_list]
         return (array(sample_D), array(sample_Q), 
-                array(sample_C), array(sample_A), array(sample_mask))
+                array(sample_C), array(sample_A), array(sample_D_len), array(sample_Q_len))
 
     def show_example(self, sample):
         # print one example from sample
         rand_ind = randint(0, len(sample[0])-1)
         rand_doc = [self.id_to_word[tok] for tok in sample[0][rand_ind] if tok != self.word_to_id['<NA>']]
         rand_query = [self.id_to_word[tok] for tok in sample[1][rand_ind] if tok != self.word_to_id['<NA>']]
-        rand_ans = self.id_to_word[sample[-2][rand_ind]]
+        rand_ans = self.id_to_word[sample[3][rand_ind]]
         
         rand_doc = [highlight(elem) if elem in self.__new_words else elem for elem in rand_doc]
         rand_query = [highlight(elem) if elem in self.__new_words else elem for elem in rand_query]
