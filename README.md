@@ -11,13 +11,9 @@ Glove Word2Vec Embeddings (Twitter, 50d, https://nlp.stanford.edu/projects/glove
 
 ## Models & Results
 
-MemN2N - End-To-End Memory Network (https://arxiv.org/abs/1503.08895) - WIP
+MemN2N - End-To-End Memory Network (https://arxiv.org/abs/1503.08895) - currently 0.22
 
-
-AS Reader - Attention Sum Reader Network (https://arxiv.org/abs/1603.01547) - WIP
-
-
-AttOvAtt Reader - Attention-Over-Attention Reader (https://arxiv.org/abs/1607.04423) - WIP
+AttOvAtt Reader - Attention-Over-Attention Reader (https://arxiv.org/abs/1607.04423) - currently 0.29
 
 ## License
 
